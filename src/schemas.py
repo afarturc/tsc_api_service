@@ -19,7 +19,7 @@ class Shell(ShellBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class TowerSectionBase(BaseModel):
@@ -38,4 +38,4 @@ class TowerSection(TowerSectionBase):
     shells: List[Shell] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
