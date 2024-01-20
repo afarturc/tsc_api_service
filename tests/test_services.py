@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from src.database import Base, engine, SessionLocal
 from src.models import TowerSection
-from src.services import create_tower_section, modify_tower_section, delete_tower_section
+from src.services import create_tower_section, modify_tower_section, delete_tower_section, get_tower_section_by_part_number
 from src.schemas import TowerSectionCreate
 from src.exceptions import TowerSectionValidationException, ShellValidationException
 
@@ -163,22 +163,35 @@ def test_modify_tower_section_not_found(db):
 
 
 def test_delete_tower_section_valid(db, valid_tower_section):
-    # Create a tower section
     created_tower_section = create_tower_section(db, valid_tower_section)
 
-    # Delete the tower section
     deleted_tower_section = delete_tower_section(
         db, section_id=created_tower_section.id)
 
-    # Assert the deleted tower section
     assert deleted_tower_section == created_tower_section
 
-    # Verify that the tower section is no longer in the database
     assert db.query(TowerSection).get(created_tower_section.id) is None
 
 
 def test_delete_tower_section_not_found(db):
-    # Try to delete a non-existent tower section
     with pytest.raises(Exception) as e:
         delete_tower_section(db, section_id=999)
+    assert "Tower section not found" in str(e.value)
+
+
+def test_get_tower_section_by_part_number_valid(db, valid_tower_section):
+    create_tower_section(db, valid_tower_section)
+
+    result = get_tower_section_by_part_number(db, part_number="TS123")
+
+    assert result.part_number == "TS123"
+    assert result.bottom_diameter == 5.0
+    assert result.top_diameter == 10.0
+    assert result.length == 25.0
+    assert len(result.shells) == 2
+
+
+def test_get_tower_section_by_part_number_not_found(db):
+    with pytest.raises(Exception) as e:
+        get_tower_section_by_part_number(db, part_number="NonExistent")
     assert "Tower section not found" in str(e.value)
