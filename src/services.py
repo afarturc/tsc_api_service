@@ -105,12 +105,28 @@ def delete_tower_section(db: Session, section_id: int):
 
 
 def get_tower_section_by_part_number(db: Session, part_number: str):
-    # Fetch the tower section with the specified part number
     tower_section = db.query(TowerSection).filter(
         TowerSection.part_number == part_number).first()
 
-    # Check if the tower section exists
     if not tower_section:
         raise HTTPException(status_code=404, detail="Tower section not found")
 
     return tower_section
+
+
+def get_tower_sections_by_diameters(db: Session, bottom_diameter: float = None, top_diameter: float = None):
+    query = db.query(TowerSection)
+
+    if bottom_diameter is not None:
+        query = query.filter(TowerSection.bottom_diameter >= bottom_diameter)
+
+    if top_diameter is not None:
+        query = query.filter(TowerSection.top_diameter <= top_diameter)
+
+    tower_sections = query.all()
+
+    if not tower_sections:
+        raise HTTPException(
+            status_code=404, detail="No matching tower sections found")
+
+    return tower_sections
