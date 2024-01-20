@@ -1,10 +1,10 @@
 from fastapi import Depends, FastAPI, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
-from database import SessionLocal, engine
-from models import Base
-from services import create_tower_section, modify_tower_section, delete_tower_section, get_tower_section_by_part_number, get_tower_sections_by_diameters
-from schemas import TowerSectionCreate, TowerSection as TowerSectionSchema
+from src.database import SessionLocal, engine
+from src.models import Base
+from src.services import create_tower_section, modify_tower_section, delete_tower_section, get_tower_section_by_part_number, get_tower_sections_by_diameters
+from src.schemas import TowerSectionCreate, TowerSection as TowerSectionSchema
 
 Base.metadata.create_all(bind=engine)
 

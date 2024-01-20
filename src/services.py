@@ -1,8 +1,8 @@
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from models import TowerSection, Shell
-from schemas import TowerSectionCreate
-from exceptions import ShellValidationException, TowerSectionValidationException
+from src.models import TowerSection, Shell
+from src.schemas import TowerSectionCreate
+from src.exceptions import ShellValidationException, TowerSectionValidationException
 
 
 def validate_shell_constraints(sorted_shells):

@@ -4,3 +4,4 @@ sqlalchemy
 pep8
 pylint
 pytest
+httpx
