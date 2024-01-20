@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy import create_engine
 from src.database import Base, engine, SessionLocal
 from src.models import TowerSection
-from src.services import create_tower_section, modify_tower_section, delete_tower_section, get_tower_section_by_part_number
+from src.services import create_tower_section, modify_tower_section, delete_tower_section, get_tower_section_by_part_number, get_tower_sections_by_diameters
 from src.schemas import TowerSectionCreate
 from src.exceptions import TowerSectionValidationException, ShellValidationException
 
@@ -195,3 +195,40 @@ def test_get_tower_section_by_part_number_not_found(db):
     with pytest.raises(Exception) as e:
         get_tower_section_by_part_number(db, part_number="NonExistent")
     assert "Tower section not found" in str(e.value)
+
+
+def test_get_tower_sections_by_diameters_with_both_diameters(db, valid_tower_section):
+    create_tower_section(db, valid_tower_section)
+
+    result = get_tower_sections_by_diameters(
+        db, bottom_diameter=5.0, top_diameter=10.0)
+
+    assert len(result) == 1
+    assert result[0].part_number == "TS123"
+
+
+def test_get_tower_sections_by_diameters_with_bottom_diameter(db, valid_tower_section):
+    create_tower_section(db, valid_tower_section)
+
+    result = get_tower_sections_by_diameters(db, bottom_diameter=5.0)
+
+    assert len(result) == 1
+    assert result[0].part_number == "TS123"
+
+
+def test_get_tower_sections_by_diameters_with_top_diameter(db, valid_tower_section):
+    create_tower_section(db, valid_tower_section)
+
+    result = get_tower_sections_by_diameters(db, top_diameter=10.0)
+
+    assert len(result) == 1
+    assert result[0].part_number == "TS123"
+
+
+def test_get_tower_sections_by_diameters_no_match(db, valid_tower_section):
+    create_tower_section(db, valid_tower_section)
+
+    with pytest.raises(Exception) as e:
+        get_tower_sections_by_diameters(
+            db, bottom_diameter=16.0, top_diameter=20.0)
+    assert "No matching tower sections found" in str(e.value)
