@@ -89,3 +89,16 @@ def modify_tower_section(db: Session, section_id: int, tower_section_data: Tower
     db.refresh(existing_tower_section)
 
     return existing_tower_section
+
+
+def delete_tower_section(db: Session, section_id: int):
+    existing_tower_section = db.query(TowerSection).filter(
+        TowerSection.id == section_id).first()
+
+    if not existing_tower_section:
+        raise HTTPException(status_code=404, detail="Tower section not found")
+
+    db.delete(existing_tower_section)
+    db.commit()
+
+    return existing_tower_section
