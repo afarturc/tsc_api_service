@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models import TowerSection, Shell
 from schemas import TowerSectionCreate
@@ -61,3 +62,30 @@ def create_tower_section(db: Session, tower_section_data: TowerSectionCreate):
     db.refresh(tower_section_model)
 
     return tower_section_model
+
+
+def modify_tower_section(db: Session, section_id: int, tower_section_data: TowerSectionCreate):
+    existing_tower_section = db.query(TowerSection).filter(
+        TowerSection.id == section_id).first()
+
+    if not existing_tower_section:
+        raise HTTPException(status_code=404, detail="Tower section not found")
+
+    sorted_shells = sorted(tower_section_data.shells, key=lambda x: x.position)
+    validate_shell_constraints(sorted_shells)
+
+    existing_tower_section.part_number = tower_section_data.part_number
+    existing_tower_section.bottom_diameter = sorted_shells[0].bottom_diameter
+    existing_tower_section.top_diameter = sorted_shells[-1].top_diameter
+    existing_tower_section.length = sum(
+        shell.height for shell in sorted_shells)
+
+    db.query(Shell).filter(Shell.section_id == section_id).delete()
+    for shell_data in sorted_shells:
+        shell_model = Shell(**shell_data.dict(), section_id=section_id)
+        db.add(shell_model)
+
+    db.commit()
+    db.refresh(existing_tower_section)
+
+    return existing_tower_section
