@@ -1,24 +1,34 @@
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from src.database import Base
-from src.services import create_tower_section
+from src.database import Base, engine, SessionLocal
+from src.services import create_tower_section, modify_tower_section
 from src.schemas import TowerSectionCreate
 from src.exceptions import TowerSectionValidationException, ShellValidationException
 
 DATABASE_URL = "sqlite:///:memory:"
-engine = create_engine(DATABASE_URL)
-TestingSessionLocal = sessionmaker(
-    autocommit=False, autoflush=False, bind=engine)
 
 Base.metadata.create_all(bind=engine)
 
 
-@pytest.fixture
-def db():
-    db = TestingSessionLocal()
-    yield db
-    db.close()
+@pytest.fixture(scope="session")
+def testing_engine():
+    return create_engine(DATABASE_URL)
+
+
+@pytest.fixture(scope="function")
+def db(testing_engine):
+    connection = testing_engine.connect()
+    transaction = connection.begin()
+
+    db_session = SessionLocal(bind=connection)
+
+    Base.metadata.create_all(bind=connection)
+
+    yield db_session
+
+    transaction.rollback()
+    connection.close()
+    testing_engine.dispose()
 
 
 @pytest.fixture
@@ -46,8 +56,7 @@ def create_shell(position, height, bottom_diameter, top_diameter, thickness, ste
 
 
 def test_create_tower_section_valid(db, valid_tower_section):
-    tower_section_data = valid_tower_section
-    created_tower_section = create_tower_section(db, tower_section_data)
+    created_tower_section = create_tower_section(db, valid_tower_section)
 
     assert created_tower_section.part_number == "TS123"
     assert created_tower_section.bottom_diameter == 5.0
@@ -60,10 +69,10 @@ def test_create_tower_section_valid(db, valid_tower_section):
 
 
 def test_create_tower_section_duplicate_part_number(db, valid_tower_section):
-    tower_section_data = valid_tower_section
+    create_tower_section(db, valid_tower_section)
 
     with pytest.raises(TowerSectionValidationException) as e:
-        create_tower_section(db, tower_section_data)
+        create_tower_section(db, valid_tower_section)
     assert "Tower section with the same part_number already exists" in str(
         e.value)
 
@@ -121,3 +130,32 @@ def test_create_tower_section_without_shells(db):
     with pytest.raises(TowerSectionValidationException) as e:
         create_tower_section(db, invalid_tower_section_data)
     assert "Tower section must have at least one shell" in str(e.value)
+
+
+def test_modify_tower_section_valid(db, valid_tower_section):
+    initial_tower_section = create_tower_section(db, valid_tower_section)
+
+    modified_tower_section_data = TowerSectionCreate(
+        part_number="TS456",
+        shells=[
+            create_shell(1, 12.0, 6.0, 9.0, 1.2, 7.85),
+            create_shell(2, 18.0, 9.0, 12.0, 1.8, 7.85),
+        ],
+    )
+    modified_tower_section = modify_tower_section(
+        db, section_id=initial_tower_section.id, tower_section_data=modified_tower_section_data)
+
+    assert modified_tower_section.part_number == "TS456"
+    assert modified_tower_section.bottom_diameter == 6.0
+    assert modified_tower_section.top_diameter == 12.0
+    assert modified_tower_section.length == 30.0
+
+    assert len(modified_tower_section.shells) == 2
+    assert modified_tower_section.shells[0].position == 1
+    assert modified_tower_section.shells[1].position == 2
+
+
+def test_modify_tower_section_not_found(db):
+    with pytest.raises(Exception) as e:
+        modify_tower_section(db, section_id=999, tower_section_data={})
+    assert "Tower section not found" in str(e.value)

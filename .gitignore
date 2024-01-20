@@ -1,4 +1,4 @@
 env
 .vscode
-src/sql_app.db
+*/sql_app.db
 */__pycache__

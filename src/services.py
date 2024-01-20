@@ -26,7 +26,7 @@ def validate_shell_constraints(sorted_shells):
                 "Shell dimensions must be numeric positive numbers")
 
 
-def create_tower_section(db: Session, tower_section_data: TowerSectionCreate):
+def validate_tower_section_data(db, tower_section_data):
     if not tower_section_data.shells:
         raise TowerSectionValidationException(
             "Tower section must have at least one shell")
@@ -36,6 +36,10 @@ def create_tower_section(db: Session, tower_section_data: TowerSectionCreate):
     if existing_tower_section:
         raise TowerSectionValidationException(
             "Tower section with the same part_number already exists")
+
+
+def create_tower_section(db: Session, tower_section_data: TowerSectionCreate):
+    validate_tower_section_data(db, tower_section_data)
 
     sorted_shells = sorted(tower_section_data.shells, key=lambda x: x.position)
 
@@ -71,6 +75,8 @@ def modify_tower_section(db: Session, section_id: int, tower_section_data: Tower
     if not existing_tower_section:
         raise HTTPException(status_code=404, detail="Tower section not found")
 
+    validate_tower_section_data(db, tower_section_data)
+
     sorted_shells = sorted(tower_section_data.shells, key=lambda x: x.position)
     validate_shell_constraints(sorted_shells)
 
@@ -82,7 +88,7 @@ def modify_tower_section(db: Session, section_id: int, tower_section_data: Tower
 
     db.query(Shell).filter(Shell.section_id == section_id).delete()
     for shell_data in sorted_shells:
-        shell_model = Shell(**shell_data.dict(), section_id=section_id)
+        shell_model = Shell(**shell_data.model_dump(), section_id=section_id)
         db.add(shell_model)
 
     db.commit()
