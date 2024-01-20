@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from database import SessionLocal, engine
 from models import Base
-from services import create_tower_section, modify_tower_section, delete_tower_section
+from services import create_tower_section, modify_tower_section, delete_tower_section, get_tower_section_by_part_number
 from schemas import TowerSectionCreate, TowerSection as TowerSectionSchema
 
 Base.metadata.create_all(bind=engine)
@@ -47,7 +47,20 @@ def delete_tower_section_endpoint(section_id: int, db: Session = Depends(get_db)
         deleted_section = delete_tower_section(db, section_id)
         return deleted_section
     except HTTPException as e:
-        raise e 
+        raise e
     except Exception as e:
+        raise HTTPException(
+            status_code=500, detail=f"Error occurred: {str(e)}")
+
+
+@app.get("/tower_sections/{part_number}", response_model=TowerSectionSchema)
+def get_tower_section_by_part_number_endpoint(part_number: str, db: Session = Depends(get_db)):
+    try:
+        retrieved_section = get_tower_section_by_part_number(db, part_number)
+        return retrieved_section
+    except HTTPException as e:
+        raise e  # Re-raise FastAPI's HTTPException to maintain proper status codes and details
+    except Exception as e:
+        # Handle specific exceptions or log the error as needed
         raise HTTPException(
             status_code=500, detail=f"Error occurred: {str(e)}")
