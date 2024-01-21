@@ -8,7 +8,42 @@ from src.schemas import TowerSectionCreate, TowerSection as TowerSectionSchema
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+description = """
+Allows users to manage tower sections and shells.
+
+## Tower Section
+
+Tower sections are the main object of this service. 
+They consist of a series of shells assembled vertically.
+
+Each tower section has:
+- unique sequential id
+- unique part number
+- bottom and top diameters 
+- length
+
+The diameters are the first shell bottom diameter and last shell top diameter.
+The length of the tower section is the sum of all the shells heights of that section.
+
+## Shell
+
+Shells are the second object of this service. They are part of the tower section.
+
+Each shell has:
+- unique identifier
+- position within the section
+- bottom and top diameters
+- height
+- thickness
+- steel density
+
+"""
+
+app = FastAPI(
+    title="Tower Sections Catalogue API Service",
+    description=description,
+    version="1.0.0"
+)
 
 
 def get_db():
