@@ -2,6 +2,34 @@
 
 Tower sections are the main object of this service. They consist of a series of shells assembled vertically.
 
+## Development
+
+This service was developed using FastAPI, a modern web framework for building Python APIs. This was decided because of the requirements of the service and previous knowladge of the framework.\
+The project was organized using the recommended FastAPI folder structure, described in the documentation:
+
+```
+.
+├── Dockerfile
+├── README.md
+├── requirements.txt
+├── src
+│   ├── __init__.py
+│   ├── database.py
+│   ├── exceptions.py
+│   ├── main.py
+│   ├── models.py
+│   ├── schemas.py
+│   ├── services.py
+│   └── sql_app.db
+└── tests
+    ├── __init__.py
+    ├── sql_app.db
+    └── test_services.py
+```
+
+The database used was SQLite with two instances, one for development and the other for tests.\
+All the API documentation can be found after running the project using FastAPI OpenAPI automatic UI documentation, where the models, endpoints and constraints are described.
+
 ## How to run
 
 ### Docker
