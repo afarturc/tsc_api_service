@@ -25,6 +25,9 @@ Each tower section has:
 The diameters are the first shell bottom diameter and last shell top diameter.
 The length of the tower section is the sum of all the shells heights of that section.
 
+Constraints:
+- Tower section must have at least one shell
+
 ## Shell
 
 Shells are the second object of this service. They are part of the tower section.
@@ -37,6 +40,10 @@ Each shell has:
 - thickness
 - steel density
 
+Constraints:
+- Shell positions must be sequential, unique, and start with number 1
+- Shell diameters must be contiguous between adjacent shells (same bottom as last top)
+- Shell dimensions must be numeric positive numbers
 """
 
 app = FastAPI(
