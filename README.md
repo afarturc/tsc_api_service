@@ -21,6 +21,7 @@ Create and run the container:
 docker run -d --name tsc_api_service -p 80:80 tsc
 ```
 
+With the server up check the documentation at:
 - [Documentation](http://localhost/docs)
 
 ### Local
@@ -52,4 +53,5 @@ Run the server:
 uvicorn src.main:app --reload
 ```
 
+With the server up check the documentation at:
 - [Documentation](http://127.0.0.1:8000/docs)
